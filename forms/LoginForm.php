@@ -47,7 +47,7 @@ class LoginForm extends Model
     public function validateUser($attribute, $params)
     {
         if (!$this->hasErrors()) {
-            $user = $this->getUser();
+            $user = $this->_getUser();
             if (!$user) {
                 $this->addError($attribute, 'Ошибка, пользователя с такими именем и email не существует');
             }
@@ -61,7 +61,7 @@ class LoginForm extends Model
     public function login()
     {
         if ($this->validate()) {
-            return Yii::$app->user->login($this->getUser(), $this->rememberMe ? 3600*24*30 : 0);
+            return Yii::$app->user->login($this->_getUser(), $this->rememberMe ? 3600 * 24 * 30 : 0);
         }
 
         return false;
@@ -72,7 +72,7 @@ class LoginForm extends Model
      *
      * @return User|null
      */
-    private function getUser()
+    private function _getUser()
     {
         if ($this->_user === false) {
             $this->_user = User::findByEmail($this->email, $this->name);
