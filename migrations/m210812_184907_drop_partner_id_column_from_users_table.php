@@ -12,7 +12,7 @@ class m210812_184907_drop_partner_id_column_from_users_table extends Migration
      */
     public function safeUp()
     {
-        $this->dropColumn('{{%users}}', 'partner_id');
+        $this->alterColumn('{{%users}}', 'partner_id', $this->biginteger());
     }
 
     /**
@@ -20,6 +20,6 @@ class m210812_184907_drop_partner_id_column_from_users_table extends Migration
      */
     public function safeDown()
     {
-        $this->addColumn('{{%users}}', 'partner_id', $this->integer());
+        return false;
     }
 }

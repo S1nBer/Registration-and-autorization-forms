@@ -12,14 +12,17 @@ class m210811_133550_create_menu_table extends Migration
      */
     public function safeUp()
     {
-        $this->createTable('{{%menu}}', [
-            'id' => $this->primaryKey(),
+        $this->createTable('{{%user_tree}}', [
+            'id'      => $this->primaryKey(),
             //'tree' => $this->integer()->notNull(),
-            'lft' => $this->integer()->notNull(),
-            'rgt' => $this->integer()->notNull(),
-            'depth' => $this->integer()->notNull(),
-            'name' => $this->string()->notNull(),
+            'lft'     => $this->integer()->notNull(),
+            'rgt'     => $this->integer()->notNull(),
+            'depth'   => $this->integer()->notNull(),
+            'user_id' => $this->integer()->notNull(),
         ]);
+
+        $this->addForeignKey('fk_user_tree_user_id', 'user_tree', 'user_id',
+            'users', 'id', 'CASCADE', 'CASCADE');
     }
 
     /**
@@ -27,6 +30,6 @@ class m210811_133550_create_menu_table extends Migration
      */
     public function safeDown()
     {
-        $this->dropTable('{{%menu}}');
+        $this->dropTable('{{%user_tree}}');
     }
 }

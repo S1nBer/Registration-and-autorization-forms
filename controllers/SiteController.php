@@ -7,14 +7,9 @@ use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\web\Response;
 use yii\filters\VerbFilter;
-use app\models\LoginForm;
-use app\models\ContactForm;
-use app\models\EntryForm;
-use app\models\Users;
-use app\models\Menu;
-use app\models\MenuQuery;
-use app\models\RegistrationForm;
-
+use app\forms\LoginForm;
+use app\forms\RegistrationForm;
+use app\models\User;
 
 class SiteController extends Controller
 {
@@ -25,18 +20,23 @@ class SiteController extends Controller
     {
         return [
             'access' => [
-                'class' => AccessControl::className(),
-                'only' => ['logout'],
+                'class' => AccessControl::class,
+                'only'  => ['logout', 'cabinet'],
                 'rules' => [
                     [
-                        'actions' => ['logout'],
-                        'allow' => true,
-                        'roles' => ['@'],
+                        'actions' => ['entry', 'registration'],
+                        'allow'   => false,
+                        'roles'   => ['?'],
+                    ],
+                    [
+                        'actions' => ['logout', 'cabinet'],
+                        'allow'   => true,
+                        'roles'   => ['@'],
                     ],
                 ],
             ],
-            'verbs' => [
-                'class' => VerbFilter::className(),
+            'verbs'  => [
+                'class'   => VerbFilter::class,
                 'actions' => [
                     'logout' => ['post'],
                 ],
@@ -50,11 +50,11 @@ class SiteController extends Controller
     public function actions()
     {
         return [
-            'error' => [
+            'error'   => [
                 'class' => 'yii\web\ErrorAction',
             ],
             'captcha' => [
-                'class' => 'yii\captcha\CaptchaAction',
+                'class'           => 'yii\captcha\CaptchaAction',
                 'fixedVerifyCode' => YII_ENV_TEST ? 'testme' : null,
             ],
         ];
@@ -70,26 +70,30 @@ class SiteController extends Controller
         return $this->render('index');
     }
 
-    /**
-     * Login action.
-     *
-     * @return Response|string
-     */
-    public function actionLogin()
+    public function actionEntry()
     {
-        if (!Yii::$app->user->isGuest) {
-            return $this->goHome();
-        }
+        $request = Yii::$app->request;
 
         $model = new LoginForm();
-        if ($model->load(Yii::$app->request->post()) && $model->login()) {
-            return $this->goBack();
+
+        if ($model->load($request->post()) && $model->login()) {
+            return $this->redirect('cabinet');
         }
 
-        $model->password = '';
-        return $this->render('login', [
-            'model' => $model,
-        ]);
+        return $this->render('entry', ['model' => $model]);
+    }
+
+    public function actionRegistration()
+    {
+        $request = Yii::$app->request;
+
+        $model = new RegistrationForm();
+
+        if ($model->load($request->post()) && $model->register()) {
+            return $this->redirect('cabinet');
+        }
+
+        return $this->render('registration', ['model' => $model]);
     }
 
     /**
@@ -104,103 +108,17 @@ class SiteController extends Controller
         return $this->goHome();
     }
 
-    /**
-     * Displays contact page.
-     *
-     * @return Response|string
-     */
-    public function actionContact()
+    public function actionCabinet()
     {
-        $model = new ContactForm();
-        if ($model->load(Yii::$app->request->post()) && $model->contact(Yii::$app->params['adminEmail'])) {
-            Yii::$app->session->setFlash('contactFormSubmitted');
+        /** @var User $user */
+        $user   = Yii::$app->user->identity;
+        $parent = $user->getParentUser();
 
-            return $this->refresh();
-        }
-        return $this->render('contact', [
-            'model' => $model,
+        return $this->render('entry-confirm', [
+            'model'    => $user,
+            'ancestor' => $parent,
         ]);
     }
 
-    /**
-     * Displays about page.
-     *
-     * @return string
-     */
-    public function actionAbout()
-    {
-        return $this->render('about');
-    }
 
-    public function actionSay($message = 'Привет')
-    {
-        return $this->render('say', ['message' => $message]);
-    }
-
-    public function actionEntry(){
-        $request = Yii::$app->request;
-        $model = new EntryForm();
-
-        if ($model->load($request->post()) && $model-> validate()){
-            $users = new Users();
-            $users = Users::findOne(['name' => $model['name'], 'email' => $model['email']]);
-            $node = Menu::findOne(['name' => $model['email']]);
-            $ancestor = new Users();
-            if($parent = $node->parents(1)->one()){
-                $ancestor = Users::findOne(['email' => $parent['name']]);   
-            }
-            if($users){
-                return $this->render('entry-confirm', ['model' => $users, 'ancestor' => $ancestor]);
-            }
-            else{
-                return $this->render('entry', ['model' => $model, 'message' => 'Ошибка, пользователя с такими именем и email не существует']);
-            } 
-        }
-        else{
-            return $this->render('entry', ['model' => $model]);
-        }
-    }
-
-    public function actionRegistration(){
-
-        function random(){
-            $n = rand(1000000000, 9999999999);
-            $id = new Users();
-            while($id = Users::findOne(['partner_id' => $n])){
-                $n = rand(1000000000, 9999999999);
-            }
-            return $n;
-        }
-
-        $request = Yii::$app->request;
-        $model = new RegistrationForm();
-
-        if($model->load($request->post()) && $model-> validate()){
-            $users = new Users();
-            $users = Users::findOne(['email' => $model['email']]);
-            if($users){
-                return $this->render('registration', ['model' => $model, 'message' => 'Ошибка, пользователь с таким email уже зарегистрирован']);
-            }
-            $partner = new Users();
-            $partner = Users::findOne(['partner_id' => $model['partner_id']]);
-            if(!$partner){
-                return $this->render('registration', ['model' => $model, 'message' => 'Ошибка, пользователя с таким partner_id не существует']);
-            }
-            $new_user = new Users();
-            $new_user->name = $model['name'];
-            $new_user->email = $model['email'];
-            $new_user->partner_id = random();
-            $new_user->date = date('Y-m-d');
-            $new_user->save();
-            $parent = new Users();
-            $parent = Users::findOne(['partner_id' => $model['partner_id']]);
-            $node = Menu::findOne(['name' => $parent['email']]);
-            $client = new Menu(['name' => $model['email']]);
-            $client->appendTo($node);
-            return $this->render('entry-confirm', ['model' => $new_user, 'ancestor' => $parent]);
-        }
-        else{
-            return $this->render('registration', ['model' => $model]);
-        }
-    }
 }

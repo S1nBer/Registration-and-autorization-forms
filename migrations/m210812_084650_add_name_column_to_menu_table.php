@@ -12,7 +12,7 @@ class m210812_084650_add_name_column_to_menu_table extends Migration
      */
     public function safeUp()
     {
-        $this->addColumn('{{%menu}}', 'tree', $this->integer()->notNull());
+        $this->addColumn('{{%user_tree}}', 'tree', $this->integer()->notNull());
     }
 
     /**
@@ -20,6 +20,6 @@ class m210812_084650_add_name_column_to_menu_table extends Migration
      */
     public function safeDown()
     {
-        $this->dropColumn('{{%menu}}', 'tree');
+        $this->dropColumn('{{%user_tree}}', 'tree');
     }
 }

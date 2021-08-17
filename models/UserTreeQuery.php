@@ -4,11 +4,11 @@ namespace app\models;
 
 use creocoder\nestedsets\NestedSetsQueryBehavior;
 
-class MenuQuery extends \yii\db\ActiveQuery
+class UserTreeQuery extends \yii\db\ActiveQuery
 {
     public function behaviors() {
         return [
-            NestedSetsQueryBehavior::className(),
+            NestedSetsQueryBehavior::class,
         ];
     }
 }

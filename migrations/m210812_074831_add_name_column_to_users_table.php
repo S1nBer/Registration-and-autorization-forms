@@ -12,7 +12,7 @@ class m210812_074831_add_name_column_to_users_table extends Migration
      */
     public function safeUp()
     {
-        $this->addColumn('{{%users}}', 'name', $this->text());
+        $this->addColumn('{{%users}}', 'name', $this->string(255));
     }
 
     /**

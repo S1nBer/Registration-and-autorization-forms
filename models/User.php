@@ -2,69 +2,41 @@
 
 namespace app\models;
 
-class User extends \yii\base\BaseObject implements \yii\web\IdentityInterface
+use yii\base\NotSupportedException;
+use yii\db\ActiveRecord;
+
+/**
+ * Class User
+ *
+ * @property integer $id
+ * @property string  $email
+ * @property string  $name
+ * @property int     $partner_id
+ * @property string  $date
+ *
+ * @package app\models
+ */
+class User extends ActiveRecord implements \yii\web\IdentityInterface
 {
-    public $id;
-    public $username;
-    public $password;
     public $authKey;
-    public $accessToken;
-
-    private static $users = [
-        '100' => [
-            'id' => '100',
-            'username' => 'admin',
-            'password' => 'admin',
-            'authKey' => 'test100key',
-            'accessToken' => '100-token',
-        ],
-        '101' => [
-            'id' => '101',
-            'username' => 'demo',
-            'password' => 'demo',
-            'authKey' => 'test101key',
-            'accessToken' => '101-token',
-        ],
-    ];
-
 
     /**
-     * {@inheritdoc}
+     * @param int|string $id
+     *
+     * @return static
      */
     public static function findIdentity($id)
     {
-        return isset(self::$users[$id]) ? new static(self::$users[$id]) : null;
+        return static::findOne(['id' => $id]);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
+     * @throws NotSupportedException
      */
     public static function findIdentityByAccessToken($token, $type = null)
     {
-        foreach (self::$users as $user) {
-            if ($user['accessToken'] === $token) {
-                return new static($user);
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Finds user by username
-     *
-     * @param string $username
-     * @return static|null
-     */
-    public static function findByUsername($username)
-    {
-        foreach (self::$users as $user) {
-            if (strcasecmp($user['username'], $username) === 0) {
-                return new static($user);
-            }
-        }
-
-        return null;
+        throw new NotSupportedException('"findIdentityByAccessToken" is not implemented.');
     }
 
     /**
@@ -92,13 +64,30 @@ class User extends \yii\base\BaseObject implements \yii\web\IdentityInterface
     }
 
     /**
-     * Validates password
+     * Finds user by email
      *
-     * @param string $password password to validate
-     * @return bool if password provided is valid for current user
+     * @param string $email
+     * @param string $name
+     *
+     * @return static|null
      */
-    public function validatePassword($password)
+    public static function findByEmail($email, $name)
     {
-        return $this->password === $password;
+        return self::findOne(['name' => $name, 'email' => $email]);
+    }
+
+    /**
+     * @return User|null
+     */
+    public function getParentUser()
+    {
+        $node = UserTree::findOne(['user_id' => $this->id]);
+
+        $ancestor = null;
+        if ($parent = $node->parents(1)->one()) {
+            $ancestor = self::findOne(['id' => $parent->user_id]);
+        }
+
+        return $ancestor;
     }
 }

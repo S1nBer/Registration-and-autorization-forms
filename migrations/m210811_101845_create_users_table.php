@@ -1,7 +1,6 @@
 <?php
 
 use yii\db\Migration;
-use yii\db\Schema;
 
 /**
  * Handles the creation of table `{{%users}}`.
@@ -14,16 +13,16 @@ class m210811_101845_create_users_table extends Migration
     public function safeUp()
     {
         $this->createTable('users', [
-            'id' => Schema::TYPE_PK,
-            'email' => Schema::TYPE_TEXT,
-            'partner_id' => Schema::TYPE_INTEGER,
-            'date' => Schema::TYPE_DATE,
+            'id'         => $this->primaryKey(),
+            'email'      => $this->string(255)->notNull(),
+            'partner_id' => $this->integer(10)->notNull(),
+            'date'       => $this->date()->notNull(),
         ]);
 
         $this->insert('users', [
-            'email' => 'sin_ber@bk.ru',
+            'email'      => 'sin_ber@bk.ru',
             'partner_id' => '1111111111',
-            'date' => '2021-08-11',
+            'date'       => '2021-08-11',
         ]);
     }
 

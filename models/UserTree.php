@@ -4,14 +4,23 @@ namespace app\models;
 
 use creocoder\nestedsets\NestedSetsBehavior;
 
-class Menu extends \yii\db\ActiveRecord
+/**
+ * Class UserTree
+ *
+ * @property int $int
+ * @property int $user_id
+ *
+ * @package app\models
+ */
+class UserTree extends \yii\db\ActiveRecord
 {
-    public function behaviors() {
+    public function behaviors()
+    {
         return [
             'tree' => [
-                'class' => NestedSetsBehavior::className(),
-                'treeAttribute' => 'tree',
-                'leftAttribute' => 'lft',
+                'class'          => NestedSetsBehavior::className(),
+                'treeAttribute'  => 'tree',
+                'leftAttribute'  => 'lft',
                 'rightAttribute' => 'rgt',
                 'depthAttribute' => 'depth',
             ],
@@ -27,6 +36,6 @@ class Menu extends \yii\db\ActiveRecord
 
     public static function find()
     {
-        return new MenuQuery(get_called_class());
+        return new UserTreeQuery(get_called_class());
     }
 }
