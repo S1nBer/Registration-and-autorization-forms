@@ -52,7 +52,7 @@ class RegistrationForm extends Model
             $newUser             = new User();
             $newUser->name       = $this->name;
             $newUser->email      = $this->email;
-            $newUser->partner_id = $this->random();
+            $newUser->partner_id = $this->_generatePartnerId();
             $newUser->date       = date('Y-m-d');
             $newUser->save();
 
@@ -78,7 +78,7 @@ class RegistrationForm extends Model
         return true;
     }
 
-    private function random()
+    private function _generatePartnerId()
     {
         $n = rand(1000000000, 9999999999);
 
